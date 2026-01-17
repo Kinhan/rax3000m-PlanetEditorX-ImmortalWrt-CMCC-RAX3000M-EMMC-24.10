@@ -4,7 +4,11 @@ on:
   repository_dispatch:
     types: [build_firmware]
   push:
-  #   branches: [ main ]
+    branches:
+      - main
+    paths:
+      - '.github/workflows/**'
+      - 'config/**'
   workflow_dispatch:
     inputs:
       device_model:
@@ -76,7 +80,7 @@ env:
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
   ENABLE_5G_25DB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.enable_5g_25db || secrets.ENABLE_5G_25DB || 'true' }}
-  GITHUB_TOKEN: ${{ secrets.GH_TOKEN  }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN   }}
   BUILD_COMMIT_MSGS_FILE: ''
   CHECKED_COMMIT_MSGS_FILE: ''
 
@@ -640,7 +644,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: steps.tag.outputs.status == 'success'
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
         with:
           tag_name: ${{ steps.tag.outputs.RELEASE_TAG }}
           body_path: release
@@ -649,7 +653,7 @@ jobs:
 
       - name: 验证Release创建
         run: |
-          curl -s -H "Authorization: token ${{ secrets.GH_TOKEN  }}" \
+          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN   }}" \
           https://api.github.com/repos/${{ github.repository }}/releases/tags/$RELEASE_TAG | jq .
           if [ $? -ne 0 ]; then
             echo "错误：Release 创建失败"
@@ -683,7 +687,7 @@ jobs:
       - name: 删除指定缓存
         continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
         run: |
           echo "当前的缓存列表"
           gh cache list
@@ -712,7 +716,7 @@ jobs:
         if: steps.tag.outputs.status == 'success'
         continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN  }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN   }}
           MATRIX_DEVICE_MODEL: ${{ matrix.device_model }}
           CURRENT_RELEASE: ${{ env.RELEASE_TAG }}
         run: |
